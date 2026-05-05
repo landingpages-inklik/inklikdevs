@@ -1,0 +1,90 @@
+.cm-overlay {
+  position: fixed;
+  top: 0; right: 0; bottom: 0; left: 0;
+  z-index: 1000;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.cm-modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 48px 40px;
+  width: 100%;
+  max-width: 560px;
+  position: relative;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.cm-close {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  color: #999;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.cm-close:hover { color: var(--color-black); }
+
+.cm-heading {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--color-black);
+  margin-bottom: 32px;
+}
+
+.cm-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cm-form input,
+.cm-form textarea {
+  font-family: var(--font-body);
+  font-size: 15px;
+  padding: 14px 16px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 8px;
+  outline: none;
+  color: var(--color-black);
+  background: #fff;
+  transition: border-color 0.2s;
+}
+
+.cm-form input::placeholder,
+.cm-form textarea::placeholder { color: #94a3b8; }
+
+.cm-form input:focus,
+.cm-form textarea:focus { border-color: var(--color-blue); }
+
+.cm-form textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.cm-submit {
+  align-self: center;
+  margin-top: 8px;
+  padding: 14px 40px;
+}
+
+.cm-status {
+  text-align: center;
+  font-size: 14px;
+  margin-top: 4px;
+}
+.cm-status.success { color: #16a34a; }
+.cm-status.error { color: #dc2626; }
+
+@media (max-width: 480px) {
+  .cm-modal { padding: 32px 20px; }
+  .cm-heading { font-size: 1.5rem; }
+}

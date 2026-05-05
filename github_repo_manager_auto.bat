@@ -1,0 +1,81 @@
+@echo off
+setlocal enabledelayedexpansion
+
+:: --- PREREQUISITES ---
+:: Install Git: https://git-scm.com/install/windows
+:: During install, select "Add Git to PATH" so git commands work in CMD/BAT files.
+
+:: --- Auto-detect repo name from current directory ---
+for %%I in (.) do set REPO_NAME=%%~nxI
+
+echo Current directory: %CD%
+echo Repo name will be: %REPO_NAME%
+echo.
+
+:: --- STEP 1: Ask user what to do ---
+echo 1. Create a new repository
+echo 2. Delete existing repository
+set /p CHOICE=Enter your choice (1 or 2): 
+
+if "%CHOICE%"=="1" goto CREATE_REPO
+if "%CHOICE%"=="2" goto DELETE_REPO
+
+echo Invalid choice.
+pause
+exit /b
+
+:CREATE_REPO
+:: --- Initialize Git in current directory and push ---
+git init
+git branch -M main
+
+:: Stage and commit everything
+git add .
+git commit -m "Initial commit"
+
+:: Create GitHub repository and push
+gh repo create %REPO_NAME% --public --source=. --remote=origin --push
+
+echo.
+echo Repository "%REPO_NAME%" created and pushed to GitHub!
+pause
+exit /b
+
+:DELETE_REPO
+:: --- Delete repositories ---
+echo.
+echo Fetching your repositories...
+set COUNT=0
+
+for /f "tokens=1" %%R in ('gh repo list landingpages-inklik --limit 100 --json name -q ".[].name"') do (
+    set /a COUNT+=1
+    set REPO!COUNT!=%%R
+    echo !COUNT!. %%R
+)
+
+if %COUNT%==0 (
+    echo No repositories found.
+    pause
+    exit /b
+)
+
+:: Ask which repos to delete
+echo.
+echo Enter numbers of repositories to delete separated by spaces (e.g., 1 3 5):
+set /p SELECTION=
+
+:: Delete selected repos
+for %%N in (%SELECTION%) do (
+    set REPO_NAME=!REPO%%N!
+    if defined REPO_NAME (
+        echo Deleting repository: !REPO_NAME!
+        gh repo delete landingpages-inklik/!REPO_NAME! --confirm
+    ) else (
+        echo Invalid selection: %%N
+    )
+)
+
+echo.
+echo Finished processing selected repositories.
+pause
+exit /b

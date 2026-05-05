@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Form | InklikDevs</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Courier+Prime&display=swap" rel="stylesheet">
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Courier Prime', monospace; background: #f8f9fb; color: #1a1a1a; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 40px 20px; }
+    .form-card { background: #fff; border-radius: 16px; padding: 48px 40px; max-width: 520px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.08); }
+    .form-card h1 { font-family: 'Inter', sans-serif; font-size: 32px; font-weight: 800; margin-bottom: 8px; }
+    .form-card p { color: #555; font-size: 14px; margin-bottom: 32px; }
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #333; }
+    .form-group input, .form-group textarea { width: 100%; padding: 12px 16px; border: 1px solid #e0e0e0; border-radius: 8px; font-family: 'Courier Prime', monospace; font-size: 15px; color: #1a1a1a; background: #f8f9fb; transition: border-color 0.2s; }
+    .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #2563eb; background: #fff; }
+    .form-group input::placeholder, .form-group textarea::placeholder { color: #aaa; }
+    textarea { resize: vertical; min-height: 100px; }
+    .btn-submit { display: block; width: 100%; padding: 14px; background: #1a1a1a; color: #fff; border: none; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 15px; font-weight: 600; cursor: pointer; transition: transform 0.2s; margin-top: 8px; }
+    .btn-submit:hover { transform: scale(0.97); }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+    .status { text-align: center; margin-top: 16px; font-size: 14px; min-height: 20px; }
+    .status.success { color: #16a34a; }
+    .status.error { color: #dc2626; }
+
+    /* Turnstile widget */
+    .cf-turnstile { display: flex; justify-content: center; margin: 4px 0; }
+
+    /* Hidden UTM fields */
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+
+<div class="form-card">
+  <h1>Get in Touch</h1>
+  <p>Fill the form below and we'll get back to you shortly.</p>
+
+  <form id="contact-form">
+    <div class="form-group">
+      <label for="name">Full Name *</label>
+      <input id="name" name="name" type="text" placeholder="John Doe" required>
+    </div>
+    <div class="form-group">
+      <label for="phone">Phone Number *</label>
+      <input id="phone" name="phone" type="tel" placeholder="9876543210" pattern="[0-9]{10}" maxlength="10" oninput="this.value=this.value.replace(/[^0-9]/g,'')" required>
+    </div>
+    <div class="form-group">
+      <label for="email">Email Address *</label>
+      <input id="email" name="email" type="email" placeholder="you@example.com" required>
+    </div>
+    <div class="form-group">
+      <label for="city">City, Country</label>
+      <input id="city" name="city" type="text" placeholder="New Delhi, India">
+    </div>
+    <div class="form-group">
+      <label for="message">Project Description</label>
+      <textarea id="message" name="message" placeholder="Tell us about your project..."></textarea>
+    </div>
+
+    <!-- Hidden UTM fields -->
+    <input class="hidden" id="utm_source" name="utm_source">
+    <input class="hidden" id="utm_medium" name="utm_medium">
+    <input class="hidden" id="utm_campaign" name="utm_campaign">
+    <input class="hidden" id="utm_term" name="utm_term">
+    <input class="hidden" id="utm_content" name="utm_content">
+    <input class="hidden" id="gclid" name="gclid">
+
+    <!-- Honeypot — hidden from humans, bots fill it -->
+    <input type="text" name="website" style="position:absolute;left:-9999px" tabindex="-1" autocomplete="off" aria-hidden="true">
+
+    <!-- Cloudflare Turnstile — replace data-sitekey with your key from https://dash.cloudflare.com/turnstile -->
+    <div class="cf-turnstile" data-sitekey="xxxxxxxx" data-callback="onTurnstileSuccess" data-expired-callback="onTurnstileExpired"></div>
+
+    <button type="submit" class="btn-submit" id="submitBtn">SUBMIT</button>
+    <div class="status" id="statusMsg"></div>
+  </form>
+</div>
+
+<script>
+/*
+ * ═══════════════════════════════════════════════════
+ *  WEBHOOK CONFIGURATION
+ * ═══════════════════════════════════════════════════
+ *
+ *  1. Google Sheet   — Apps Script (form-encoded, needs form_name)
+ *  2. Integrately    — Production webhook (application/json, CORS supported)
+ *  3. Webhook.site   — Testing webhook (text/plain, no-cors)
+ *
+ */
+
+const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbwsIK7Zit3S-q-zFKveGpMO2LdLXWVp5s_GuiynqtqvGGxWJcG_kpgZD3UYoJ1j-5o2Nw/exec';
+const INTEGRATELY_URL  = 'https://webhooks.integrately.com/a/webhooks/03806157e6c74027893f90766fcb5023';
+const WEBHOOK_SITE_URL = 'https://webhook.site/5881d9d3-2381-49e6-9662-2e1102f5cf55';
+
+
+// ── Capture UTM params from URL ──
+(function () {
+  const params = new URLSearchParams(window.location.search);
+  ['utm_source','utm_medium','utm_campaign','utm_term','utm_content','gclid'].forEach(function (key) {
+    var el = document.getElementById(key);
+    if (el) el.value = params.get(key) || '';
+  });
+})();
+
+
+// ── Turnstile callbacks ──
+var turnstileToken = '';
+function onTurnstileSuccess(token) { turnstileToken = token; }
+function onTurnstileExpired() { turnstileToken = ''; }
+
+
+// ── Collect form data ──
+function getFormPayload() {
+  var form = document.getElementById('contact-form');
+  var data = {};
+  new FormData(form).forEach(function (val, key) {
+    if (key === 'website') return; // skip honeypot
+    data[key] = val;
+  });
+  data['cf-turnstile-response'] = turnstileToken;
+  data.lead_timestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
+  return data;
+}
+
+
+// ═══════════════════════════════════════════════════
+//  1. GOOGLE SHEET — form-encoded POST
+// ═══════════════════════════════════════════════════
+async function sendToGoogleSheet(payload) {
+  try {
+    var params = new URLSearchParams();
+    params.append('form_name', 'InklikDevs Contact');
+    Object.keys(payload).forEach(function (key) { params.append(key, payload[key]); });
+    await fetch(GOOGLE_SHEET_URL, {
+      method: 'POST',
+      body: params,
+      mode: 'no-cors',
+    });
+    console.log('✅ Google Sheet: sent');
+  } catch (err) {
+    console.log('❌ Google Sheet error:', err);
+  }
+}
+
+
+// ═══════════════════════════════════════════════════
+//  2. INTEGRATELY — JSON POST (CORS supported)
+// ═══════════════════════════════════════════════════
+async function sendToIntegrately(payload) {
+  try {
+    await fetch(INTEGRATELY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    console.log('✅ Integrately: sent');
+  } catch (err) {
+    console.log('❌ Integrately error:', err);
+  }
+}
+
+
+// ═══════════════════════════════════════════════════
+//  3. WEBHOOK.SITE — text/plain + no-cors (testing)
+// ═══════════════════════════════════════════════════
+async function sendToWebhookSite(payload) {
+  try {
+    await fetch(WEBHOOK_SITE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(payload),
+      mode: 'no-cors',
+    });
+    console.log('✅ Webhook.site: sent');
+  } catch (err) {
+    console.log('❌ Webhook.site error:', err);
+  }
+}
+
+
+// ── Form Submit Handler ──
+document.getElementById('contact-form').addEventListener('submit', async function (e) {
+  e.preventDefault();
+
+  var btn = document.getElementById('submitBtn');
+  var status = document.getElementById('statusMsg');
+
+  // Honeypot check — bots fill this, humans don't
+  var hp = document.querySelector('input[name="website"]');
+  if (hp && hp.value) {
+    status.textContent = 'Thank you! We will get back to you soon.';
+    status.className = 'status success';
+    return;
+  }
+
+  // Turnstile check
+  if (!turnstileToken) {
+    status.textContent = 'Please complete the security check.';
+    status.className = 'status error';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'SENDING...';
+  status.textContent = '';
+  status.className = 'status';
+
+  var payload = getFormPayload();
+
+  // Send to all webhooks in parallel
+  await Promise.all([
+    sendToGoogleSheet(payload),
+    // sendToIntegrately(payload),  // DISABLED — uncomment when ready for production (uses Integrately credits)
+    sendToWebhookSite(payload),
+  ]);
+
+  // Success
+  status.textContent = 'Thank you! We will get back to you soon.';
+  status.className = 'status success';
+  document.getElementById('contact-form').reset();
+  btn.disabled = false;
+  btn.textContent = 'SUBMIT';
+});
+</script>
+
+</body>
+</html>

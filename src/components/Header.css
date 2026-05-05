@@ -1,0 +1,135 @@
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 18px 40px;
+  position: relative;
+}
+
+.inklik-logo-container { display: inline-block; }
+
+.logo-flex-row {
+  display: flex;
+  align-items: baseline;
+  user-select: none;
+}
+
+.brand-inklik {
+  font-family: var(--font-heading);
+  font-size: 2.6rem;
+  font-weight: 700;
+  color: var(--color-black);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.code-syntax {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 2.9rem;
+  margin-left: 0.12em;
+  display: inline-flex;
+  align-items: baseline;
+  line-height: 1;
+}
+
+.syn-bracket {
+  color: gray;
+  font-size: 0.8em;
+  vertical-align: middle;
+  position: relative;
+  top: -0.05em;
+  opacity: 0.8;
+}
+
+.syn-text { color: #005cc5; }
+
+.logo-cursor-long {
+  display: inline-block;
+  width: 3px;
+  height: 1.25em;
+  background-color: var(--color-black);
+  margin-left: 10px;
+  vertical-align: bottom;
+  transform: translateY(0.24em);
+  animation: inklikBlink 1.1s step-end infinite;
+}
+
+@keyframes inklikBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.nav-link {
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--color-muted);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.nav-link:hover { color: var(--color-black); }
+
+.hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+}
+.hamburger span {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background: var(--color-black);
+  border-radius: 2px;
+  transition: transform 0.25s, opacity 0.2s;
+}
+.hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.hamburger.open span:nth-child(2) { opacity: 0; }
+.hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+.mobile-nav {
+  display: none;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 20px;
+  padding: 24px 40px;
+  border-top: 1px solid #f0f0f0;
+  background: #fff;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  z-index: 99;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+}
+
+@media (max-width: 768px) {
+  .header-inner { padding: 14px 20px; }
+  .brand-inklik { font-size: 1.5rem; }
+  .code-syntax { font-size: 1.7rem; }
+  .logo-cursor-long { width: 2px; }
+  .header-nav { display: none; }
+  .hamburger,
+  .mobile-nav { display: flex; }
+}

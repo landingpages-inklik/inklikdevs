@@ -1,0 +1,251 @@
+.ow-section {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ow-wrapper {
+  width: 100%;
+  max-width: 640px;
+}
+
+.ow-window {
+  width: 100%;
+  height: 490px;
+  position: relative;
+}
+
+.ow-frame {
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  background: #fff;
+  border-radius: 24px;
+  border: 1px solid #f0f4f8;
+  box-shadow: 0 40px 100px -20px rgba(0,0,0,0.08), 0 20px 40px -15px rgba(0,0,0,0.05);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.ow-titlebar {
+  height: 52px;
+  border-bottom: 1px solid #f8fafc;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  justify-content: space-between;
+  background: #fff;
+}
+
+.ow-dots { display: flex; gap: 8px; }
+.ow-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #e2e8f0;
+}
+
+.ow-titlebar-label {
+  font-size: 10px;
+  font-weight: 800;
+  color: #cbd5e1;
+  letter-spacing: 0.15em;
+  font-family: 'Courier New', monospace;
+}
+
+.ow-body { flex-grow: 1; position: relative; }
+
+.ow-coding {
+  padding: 40px;
+  font-family: 'Courier New', monospace;
+  font-size: 15px;
+  line-height: 1.8;
+  color: #94a3b8;
+  transition: opacity 0.6s ease;
+}
+
+.ow-bold { color: #0f172a; font-weight: 700; }
+.ow-blue { color: #2563eb; }
+.ow-dim { color: #94a3b8; }
+
+.ow-dashboard {
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  background: #fafafa;
+  padding: 24px;
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  grid-template-rows: repeat(10, 1fr);
+  gap: 16px;
+  transition: opacity 0.6s ease;
+}
+
+.ow-stat-primary {
+  grid-column: span 5;
+  grid-row: span 4;
+  background: #2563eb;
+  border-radius: 16px;
+  padding: 20px;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 10px 20px -5px rgba(37,99,235,0.3);
+}
+
+.ow-stat-label {
+  font-size: 10px;
+  font-weight: 700;
+  opacity: 0.8;
+  letter-spacing: 0.05em;
+}
+
+.ow-stat-value-lg {
+  font-size: 32px;
+  font-weight: 700;
+  font-family: 'Courier New', monospace;
+}
+
+.ow-stat-sub {
+  font-size: 9px;
+  opacity: 0.7;
+  font-family: 'Courier New', monospace;
+}
+
+.ow-stat-netflow {
+  grid-column: span 4;
+  grid-row: span 4;
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid #f1f5f9;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.ow-label-muted { color: #94a3b8; }
+
+.ow-stat-value-dark {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1e293b;
+  font-family: 'Courier New', monospace;
+}
+
+.ow-flow-track {
+  width: 100%;
+  height: 4px;
+  background: #f1f5f9;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.ow-flow-bar {
+  width: 0%;
+  height: 100%;
+  background: #2563eb;
+  transition: width 1.5s ease;
+}
+
+.ow-stat-risk {
+  grid-column: span 3;
+  grid-row: span 4;
+  background: #fff;
+  border-radius: 16px;
+  padding: 15px;
+  border: 1px solid #f1f5f9;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.ow-risk-ring {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  margin-top: 10px;
+}
+
+.ow-risk-ring svg {
+  transform: rotate(-90deg);
+  width: 100%;
+  height: 100%;
+}
+
+.ow-risk-ring circle { transition: stroke-dashoffset 2s ease; }
+
+.ow-risk-label {
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 7px;
+  font-weight: 800;
+  color: #2563eb;
+}
+
+.ow-perf-card {
+  grid-column: span 12;
+  grid-row: span 4;
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid #f1f5f9;
+  display: flex;
+  flex-direction: column;
+}
+
+.ow-perf-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.ow-perf-title {
+  font-size: 9px;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 0.05em;
+  font-family: 'Courier New', monospace;
+}
+
+.ow-perf-badge {
+  font-size: 8px;
+  font-weight: 700;
+  color: #94a3b8;
+  background: #f8fafc;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid #f1f5f9;
+}
+
+.ow-chart {
+  flex-grow: 1;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.ow-chart-bar {
+  flex: 1;
+  border-radius: 4px;
+  transition: height 1s ease-out;
+}
+
+.ow-bar-blue { background: #2563eb; }
+.ow-bar-gray { background: #f1f5f9; }
+
+@media (max-width: 640px) {
+  .ow-window { height: 360px; }
+  .ow-coding { padding: 20px; font-size: 12px; }
+  .ow-dashboard { padding: 12px; gap: 8px; }
+  .ow-stat-value-lg { font-size: 22px; }
+  .ow-stat-value-dark { font-size: 16px; }
+  .ow-stat-primary, .ow-stat-netflow, .ow-stat-risk { padding: 12px; }
+}

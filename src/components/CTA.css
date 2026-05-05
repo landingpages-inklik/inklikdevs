@@ -1,0 +1,13 @@
+.cta-section {
+  background: #eef2f7;
+  padding: var(--section-pad);
+}
+
+.cta-inner {
+  max-width: 640px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.cta-heading { margin-bottom: 20px; }
+.cta-description { color: var(--color-gray); margin-bottom: 36px; }
