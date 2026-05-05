@@ -5,6 +5,13 @@ setlocal enabledelayedexpansion
 :: Install Git: https://git-scm.com/install/windows
 :: During install, select "Add Git to PATH" so git commands work in CMD/BAT files.
 
+:: --- STEP 0: Refresh GitHub CLI auth ---
+echo Refreshing GitHub CLI authentication with delete_repo scope...
+gh auth refresh -h github.com -s delete_repo
+
+
+
+
 :: --- Auto-detect repo name from current directory ---
 for %%I in (.) do set REPO_NAME=%%~nxI
 
