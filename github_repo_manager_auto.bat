@@ -37,6 +37,15 @@ echo.
 git init
 git branch -M main
 
+:: Create sample index.html
+echo ^<h1^>Hello World from %REPO_NAME%^</h1^> > index.html
+echo ^<h2^>Hello World 1 %REPO_NAME%^</h2^> > index.html
+echo ^<h3^>Hello World 2 %REPO_NAME%^</h3^> > index.html
+
+:: Add and commit files
+git add .
+git commit -m "Initial commit"
+
 :: Stage and commit everything
 git add .
 git commit -m "Initial commit"
