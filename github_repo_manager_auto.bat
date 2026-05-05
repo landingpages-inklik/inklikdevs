@@ -13,16 +13,24 @@ echo Repo name will be: %REPO_NAME%
 echo.
 
 :: --- STEP 1: Ask user what to do ---
-echo 1. Create a new repository
-echo 2. Delete existing repository
-set /p CHOICE=Enter your choice (1 or 2): 
+echo 1. Create repository (use folder name: %REPO_NAME%)
+echo 2. Create repository (ask for custom name)
+echo 3. Delete existing repository
+set /p CHOICE=Enter your choice (1, 2 or 3): 
 
 if "%CHOICE%"=="1" goto CREATE_REPO
-if "%CHOICE%"=="2" goto DELETE_REPO
+if "%CHOICE%"=="2" goto CREATE_REPO_CUSTOM
+if "%CHOICE%"=="3" goto DELETE_REPO
 
 echo Invalid choice.
 pause
 exit /b
+
+:CREATE_REPO_CUSTOM
+:: --- Ask for a custom repo name ---
+set /p REPO_NAME=Enter repository name: 
+echo Repo name set to: %REPO_NAME%
+echo.
 
 :CREATE_REPO
 :: --- Initialize Git in current directory and push ---
