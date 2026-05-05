@@ -26,18 +26,42 @@ echo 3. Delete existing repository
 set /p CHOICE=Enter your choice (1, 2 or 3): 
 
 if "%CHOICE%"=="1" goto CREATE_REPO
-if "%CHOICE%"=="2" goto CREATE_REPO_CUSTOM
+if "%CHOICE%"=="2" goto CREATE_REPO_CUSTOM_NAME
 if "%CHOICE%"=="3" goto DELETE_REPO
 
 echo Invalid choice.
 pause
 exit /b
 
-:CREATE_REPO_CUSTOM
+:CREATE_REPO_CUSTOM_NAME
 :: --- Ask for a custom repo name ---
 set /p REPO_NAME=Enter repository name: 
 echo Repo name set to: %REPO_NAME%
+
+:: Create folder and navigate into it
+mkdir %REPO_NAME%
+cd %REPO_NAME%
+
+:: Initialize Git and set default branch to main
+git init
+git branch -M main
+
+:: Create sample index.html
+echo ^<h1^>Hello World from %REPO_NAME%^</h1^> > index.html
+echo ^<h2^>Hello World 1 %REPO_NAME%^</h2^> > index.html
+echo ^<h3^>Hello World 2 %REPO_NAME%^</h3^> > index.html
+
+:: Add and commit files
+git add .
+git commit -m "Initial commit"
+
+:: Create GitHub repository and push
+gh repo create %REPO_NAME% --public --source=. --remote=origin --push
+
 echo.
+echo Repository "%REPO_NAME%" created and pushed to GitHub!
+pause
+exit /b
 
 :CREATE_REPO
 :: --- Initialize Git in current directory and push ---
