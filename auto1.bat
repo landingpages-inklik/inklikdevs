@@ -169,51 +169,32 @@ if not exist ".git" (
     git branch -M main
 )
 
-:: Create .gitignore if missing
-if not exist ".gitignore" (
-(
-echo node_modules/
-echo vendor/
-echo .env
-echo *.log
-) > .gitignore
-)
-
 :: Add + commit
 git add .
+git commit -m "Auto commit" >nul 2>&1
 
-git diff --cached --quiet
-if errorlevel 1 (
-    git commit -m "Auto commit"
-) else (
-    echo No changes to commit.
-)
-
-:: CHECK IF REPO EXISTS
-gh repo view %USERNAME%/%REPO_NAME% >nul 2>&1
+:: Create GitHub repo (ONLY create, no push)
+echo Creating GitHub repo...
+gh repo create %REPO_NAME% --public --confirm
 
 if errorlevel 1 (
-    echo Repository does not exist. Creating...
-
-    gh repo create %REPO_NAME% --public
-
-    if errorlevel 1 (
-        echo Failed to create repo.
-        pause
-        exit /b
-    )
-) else (
-    echo Repository already exists.
+    echo Failed to create repo.
+    pause
+    exit /b
 )
 
-:: Setup remote
+:: Fix remote (IMPORTANT PART)
 git remote get-url origin >nul 2>&1
 
 if errorlevel 1 (
+    echo Adding origin...
     git remote add origin https://github.com/%USERNAME%/%REPO_NAME%.git
+) else (
+    echo Updating existing origin...
+    git remote set-url origin https://github.com/%USERNAME%/%REPO_NAME%.git
 )
 
-:: Push
+:: Push manually
 git branch -M main
 git push -u origin main
 
