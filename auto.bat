@@ -1,169 +1,197 @@
 @echo off
 setlocal enabledelayedexpansion
+chcp 65001 >nul
 
-:: ================================
-:: STEP 0: AUTH CHECK
-:: ================================
+:: =====================================
+:: CONFIG
+:: =====================================
+
+set ROOT=D:\Git-Development
+
+:: =====================================
+:: CHECK REQUIRED TOOLS
+:: =====================================
+
+where git >nul 2>&1
+if errorlevel 1 (
+    echo Git is not installed.
+    pause
+    exit /b
+)
+
+where gh >nul 2>&1
+if errorlevel 1 (
+    echo GitHub CLI is not installed.
+    pause
+    exit /b
+)
+
+:: =====================================
+:: AUTH CHECK
+:: =====================================
+
 echo Checking GitHub authentication...
+echo.
 
 gh auth status >nul 2>&1
-echo.
+
 if errorlevel 1 (
-    echo Not authenticated. Starting login...
-	echo.
-	echo install git desktop ftom https://git-scm.com/install/windows
-	echo install 'gh' from https://cli.github.com/
+    echo Login required...
     gh auth login
 ) else (
     echo Already authenticated.
 )
 
-
-
-:: Get username dynamically
+:: Get GitHub username
 for /f %%U in ('gh api user -q .login') do set USERNAME=%%U
 
-:: ================================
-:: MENU
-:: ================================
+:: =====================================
+:: MAIN MENU
+:: =====================================
+
+:MENU
+
+cls
+
 echo.
-echo ================================
-echo GitHub Automation Tool
-echo ================================
-echo 1. Create a new repository
-echo 2. Delete repositories
-echo 3. Push current directory
-echo ================================
-set /p CHOICE=Enter your choice (1, 2 or 3):
+echo =====================================
+echo         GitHub Automation Tool
+echo =====================================
+echo Root Folder: %ROOT%
+echo =====================================
+echo 1. Create New Project Repo
+echo 2. Push Existing Project
+echo 3. Delete GitHub Repositories
+echo 4. Exit
+echo =====================================
 
-if "%CHOICE%"=="1" goto CREATE_REPO
-if "%CHOICE%"=="2" goto DELETE_REPO
-if "%CHOICE%"=="3" goto PUSH_CURRENT_DIR
+set /p CHOICE=Enter your choice:
 
+if "%CHOICE%"=="1" goto CREATE_NEW
+if "%CHOICE%"=="2" goto PUSH_EXISTING
+if "%CHOICE%"=="3" goto DELETE_REPO
+if "%CHOICE%"=="4" goto EXIT_SCRIPT
+
+echo.
 echo Invalid choice.
 pause
-exit /b
+goto MENU
 
-:: ================================
-:: CREATE NEW REPO
-:: ================================
-:CREATE_REPO
+:: =====================================
+:: CREATE NEW PROJECT
+:: =====================================
+
+:CREATE_NEW
+
+cls
+
 echo.
-set /p REPO_NAME=Enter repository name:
+echo =====================================
+echo        Create New Project
+echo =====================================
+
+set /p REPO_NAME=Enter new project name: 
 
 if "%REPO_NAME%"=="" (
-    echo Repo name cannot be empty!
+    echo Invalid project name.
     pause
-    exit /b
+    goto MENU
 )
 
-if exist "%REPO_NAME%" (
-    echo Folder already exists!
+if exist "%ROOT%\%REPO_NAME%" (
+    echo Folder already exists.
     pause
-    exit /b
+    goto MENU
 )
 
-mkdir "%REPO_NAME%"
-cd "%REPO_NAME%"
+mkdir "%ROOT%\%REPO_NAME%"
+cd /d "%ROOT%\%REPO_NAME%"
 
+:: Initialize Git
 git init
 git branch -M main
 
-:: Create sample index.html
-echo ^<h1^>Hello World from %REPO_NAME%^</h1^> > index.html
-echo ^<h2^>Hello World 1 ^</h2^> >> index.html
-echo ^<h3^>Hello World 2 %REPO_NAME%^</h3^> >> index.html
+:: Create sample file
+echo ^<h1^>%REPO_NAME%^</h1^> > index.html
 
+:: Create .gitignore
+(
+echo node_modules/
+echo vendor/
+echo .env
+echo *.log
+echo .cache/
+) > .gitignore
 
+:: Git commit
 git add .
 git commit -m "Initial commit"
 
-echo Creating repo on GitHub...
+:: Create GitHub repo + push
+echo.
+echo Creating GitHub repository...
+
 gh repo create %REPO_NAME% --public --source=. --remote=origin --push
 
 if errorlevel 1 (
+    echo.
     echo Failed to create repository.
 ) else (
+    echo.
     echo Repository created successfully!
 )
 
 pause
-exit /b
+goto MENU
 
-:: ================================
-:: DELETE REPOS
-:: ================================
-:DELETE_REPO
+:: =====================================
+:: PUSH EXISTING PROJECT
+:: =====================================
+
+:PUSH_EXISTING
+
+cls
+
 echo.
-echo Fetching repositories...
-
-gh repo list %USERNAME% --limit 100 --json name,visibility -q ".[] | [.name, .visibility] | @tsv" > repos.txt
+echo =====================================
+echo        Available Projects
+echo =====================================
 
 set COUNT=0
 
-for /f "tokens=1,2" %%A in (repos.txt) do (
+for /d %%D in ("%ROOT%\*") do (
     set /a COUNT+=1
-    set REPO!COUNT!=%%A
-    set VIS!COUNT!=%%B
-    echo !COUNT!. %%A [%%B]
+    set FOLDER!COUNT!=%%~nxD
+    echo !COUNT!. %%~nxD
 )
-
-del repos.txt
 
 if %COUNT%==0 (
-    echo No repositories found.
+    echo No project folders found.
     pause
-    exit /b
+    goto MENU
 )
 
 echo.
-:: Ensure delete permission (silent)
-::gh auth refresh -h github.com -s delete_repo
-echo.
-set /p SELECTION=Enter numbers to delete (e.g., 1 2 3):
+set /p SELECT=Select project number: 
 
-echo You selected: %SELECTION%
-set /p CONFIRM=Type YES to confirm:
+set PROJECT=!FOLDER%SELECT%!
 
-if /i not "%CONFIRM%"=="YES" (
-    echo Cancelled.
+if "%PROJECT%"=="" (
+    echo Invalid selection.
     pause
-    exit /b
+    goto MENU
 )
 
-for %%N in (%SELECTION%) do (
-    set REPO_NAME=!REPO%%N!
-    if defined REPO_NAME (
-        echo Deleting !REPO_NAME!...
-        gh repo delete %USERNAME%/!REPO_NAME! --confirm
+cd /d "%ROOT%\%PROJECT%"
 
-        if errorlevel 1 (
-            echo Failed to delete !REPO_NAME!
-        ) else (
-            echo Deleted successfully!
-        )
-    ) else (
-        echo Invalid selection: %%N
-    )
-)
+cls
 
-pause
-exit /b
-
-:: ================================
-:: PUSH CURRENT DIRECTORY
-:: ================================
-:PUSH_CURRENT_DIR
 echo.
-
-:: Get folder name
-for %%I in ("%cd%") do set REPO_NAME=%%~nxI
-
 echo =====================================
-echo Current Directory: %REPO_NAME%
+echo Selected Project: %PROJECT%
 echo =====================================
 
-:: Init git if needed
+:: Initialize Git if missing
 if not exist ".git" (
     git init
     git branch -M main
@@ -176,53 +204,152 @@ echo node_modules/
 echo vendor/
 echo .env
 echo *.log
+echo .cache/
 ) > .gitignore
 )
 
-:: Add + commit
+:: Add changes
 git add .
 
+:: Check for changes
 git diff --cached --quiet
+
 if errorlevel 1 (
-    git commit -m "Auto commit"
+
+    echo.
+    set /p MSG=Enter commit message:
+
+    if "!MSG!"=="" set MSG=Auto commit
+
+    git commit -m "!MSG!"
+
 ) else (
-    echo No changes to commit.
+
+    echo.
+    echo No changes detected.
 )
 
-:: CHECK IF REPO EXISTS
-gh repo view %USERNAME%/%REPO_NAME% >nul 2>&1
+:: Check if GitHub repo exists
+gh repo view %USERNAME%/%PROJECT% >nul 2>&1
 
 if errorlevel 1 (
-    echo Repository does not exist. Creating...
 
-    gh repo create %REPO_NAME% --public
+    echo.
+    echo GitHub repository does not exist.
+    echo Creating repository...
+
+    gh repo create %PROJECT% --public
+
+    :: Add remote if missing
+    git remote get-url origin >nul 2>&1
 
     if errorlevel 1 (
-        echo Failed to create repo.
-        pause
-        exit /b
+        git remote add origin https://github.com/%USERNAME%/%PROJECT%.git
     )
+
 ) else (
+
+    echo.
     echo Repository already exists.
 )
 
-:: Setup remote
-git remote get-url origin >nul 2>&1
-
-if errorlevel 1 (
-    git remote add origin https://github.com/%USERNAME%/%REPO_NAME%.git
-)
-
-:: Push
+:: Push changes
 git branch -M main
 git push -u origin main
 
 if errorlevel 1 (
+    echo.
     echo Push failed.
 ) else (
     echo.
-    echo Repository pushed successfully!
+    echo Push completed successfully!
 )
 
 pause
+goto MENU
+
+:: =====================================
+:: DELETE REPOSITORIES
+:: =====================================
+
+:DELETE_REPO
+
+cls
+
+echo.
+echo =====================================
+echo       GitHub Repositories
+echo =====================================
+
+gh repo list %USERNAME% --limit 1000 --json name,visibility -q ".[] | [.name, .visibility] | @tsv" > repos.txt
+
+set COUNT=0
+
+for /f "tokens=1,2" %%A in (repos.txt) do (
+    set /a COUNT+=1
+
+    set REPO!COUNT!=%%A
+    set VIS!COUNT!=%%B
+
+    echo !COUNT!. %%A [%%B]
+)
+
+del repos.txt
+
+if %COUNT%==0 (
+    echo.
+    echo No repositories found.
+    pause
+    goto MENU
+)
+
+echo.
+set /p SELECTION=Enter repo numbers to delete: 
+
+echo.
+echo WARNING: THIS ACTION IS PERMANENT
+set /p CONFIRM=Type YES to continue:
+
+if /i not "%CONFIRM%"=="YES" (
+    echo.
+    echo Cancelled.
+    pause
+    goto MENU
+)
+
+for %%N in (%SELECTION%) do (
+
+    set REPO_NAME=!REPO%%N!
+
+    if defined REPO_NAME (
+
+        echo.
+        echo Deleting !REPO_NAME!...
+
+        gh repo delete %USERNAME%/!REPO_NAME! --yes
+
+        if errorlevel 1 (
+            echo Failed to delete !REPO_NAME!
+        ) else (
+            echo Deleted successfully!
+        )
+
+    ) else (
+
+        echo Invalid selection: %%N
+    )
+)
+
+pause
+goto MENU
+
+:: =====================================
+:: EXIT
+:: =====================================
+
+:EXIT_SCRIPT
+
+echo.
+echo Exiting...
+timeout /t 1 >nul
 exit /b
